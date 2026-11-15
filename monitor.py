@@ -18,6 +18,7 @@ import os
 import re
 import smtplib
 import sys
+import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -74,8 +75,16 @@ def fetch_month(library, museum_id, month_start):
         headers={"User-Agent": "Mozilla/5.0 (personal museum-pass notifier)",
                  "X-Requested-With": "XMLHttpRequest"},
     )
-    with urllib.request.urlopen(req, timeout=20) as r:
-        body = r.read().decode("utf-8", "replace")
+    body = None
+    for attempt in range(4):  # the libraries' servers sometimes drop a connection; retry
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                body = r.read().decode("utf-8", "replace")
+            break
+        except Exception:
+            if attempt == 3:
+                raise
+            time.sleep(2 * (attempt + 1))
     cells = CELL.findall(body)
     if not cells:  # layout changed or error page: fail loudly rather than go silent
         raise RuntimeError(f"no calendar cells found ({body[:80]!r})")
