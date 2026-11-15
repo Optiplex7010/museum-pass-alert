@@ -53,9 +53,10 @@ WATCH = [
     ("Woodland Park Zoo", KCLS, "15d03dcb51d3", "15d03dcb51d3"),
 ]
 
+# Open days are drawn as a clickable <a href=".../book?..."> link; every other day is a <span>.
 CELL = re.compile(
     r'class="day [^"]*?day-(\d{4}-\d\d-\d\d)[^"]*"\s*>\s*<div class="day-number">\s*'
-    r'<span class="s-lc-pass-availability (s-lc-pass-[a-z-]+)'
+    r'<(?:span|a)\b([^>]*)>'
 )
 
 
@@ -86,7 +87,13 @@ def fetch_month(library, museum_id, month_start):
             if attempt == 3:
                 raise
             time.sleep(2 * (attempt + 1))
-    cells = CELL.findall(body)
+    cells = []
+    for day, attrs in CELL.findall(body):
+        classes = re.search(r'class="([^"]*)"', attrs)
+        tokens = (classes.group(1) if classes else "").split()
+        href = re.search(r'href="([^"]*)"', attrs)
+        cells.append((day, "s-lc-pass-available" in tokens,
+                      html.unescape(href.group(1)) if href else None))
     if not cells:  # layout changed or error page: fail loudly rather than go silent
         raise RuntimeError(f"no calendar cells found ({body[:80]!r})")
     return cells
@@ -94,11 +101,11 @@ def fetch_month(library, museum_id, month_start):
 
 def available_days(item, today):
     museum, library, _slug, museum_id = item
-    found = set()
+    found = {}  # day -> direct booking link (or None)
     for month in month_starts(today):
-        for day, status in fetch_month(library, museum_id, month):
-            if status == "s-lc-pass-available" and date.fromisoformat(day) >= today:
-                found.add(day)
+        for day, is_open, href in fetch_month(library, museum_id, month):
+            if is_open and date.fromisoformat(day) >= today:
+                found[day] = href
     return found
 
 
@@ -149,12 +156,13 @@ def main():
             errors.append(f"{museum} @ {library['name']}: {err}")
             continue  # keep old state for this museum
         already = set(state.get(key, []))
-        notified = already & days  # still available, already told you
-        for day in sorted(days - already):
+        notified = already & set(days)  # still available, already told you
+        for day in sorted(set(days) - already):
             if sent >= MAX_EMAILS_PER_RUN:
                 break  # not marked as notified, so it goes out next run
             d = date.fromisoformat(day)
-            url = f"{library['base']}/passes/{slug}"
+            href = days[day]
+            url = (library["base"] + href) if href and href.startswith("/") else f"{library['base']}/passes/{slug}"
             body = (f"{museum}: a free {library['name']} pass is available for "
                     f"{d.strftime('%A, %B')} {d.day}.\n\nBook it: {url}\n\n"
                     "Passes go fast. Reservations are limited per library card.\n")
