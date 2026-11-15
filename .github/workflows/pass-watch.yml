@@ -3,7 +3,12 @@ name: museum-pass-watch
 on:
   schedule:
     - cron: "*/5 * * * *"   # GitHub's minimum is 5 min, and runs can start a few minutes late
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      send_test_email:
+        description: "Send one test email instead of scanning"
+        type: boolean
+        default: false
 
 concurrency:
   group: pass-watch
@@ -25,7 +30,7 @@ jobs:
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python monitor.py
+        run: python monitor.py ${{ inputs.send_test_email && '--test-email' || '' }}
       - name: Save state
         if: always()
         run: |

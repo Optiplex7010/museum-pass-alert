@@ -10,7 +10,8 @@ Standard library only. Config comes from environment variables:
   GMAIL_USER          sender Gmail address (hrshimada28@gmail.com)
   GMAIL_APP_PASSWORD  Gmail app password (NOT the normal password)
   MAIL_TO             optional, defaults to GMAIL_USER
-Flags: --dry-run  print emails instead of sending, and do not save state
+Flags: --dry-run     print emails instead of sending, and do not save state
+       --test-email  send one test email and exit
 """
 import html
 import json
@@ -122,6 +123,11 @@ def send(msg_subject, body, dry_run):
 
 def main():
     dry_run = "--dry-run" in sys.argv
+    if "--test-email" in sys.argv:  # one-off check that Gmail login and delivery work
+        send("TEST museum pass alert — email setup works",
+             "If you can read this, the museum pass alerts can reach you.\n", dry_run)
+        print("test email sent" if not dry_run else "test email (dry run)")
+        return
     today = datetime.now(TZ).date()
     state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
     errors = []
