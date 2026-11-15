@@ -30,6 +30,7 @@ from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("America/Los_Angeles")
 STATE_FILE = Path(__file__).with_name("state.json")
+WEEKDAYS_WANTED = {4, 5, 6}  # Friday, Saturday, Sunday (Monday = 0)
 MAX_EMAILS_PER_RUN = 10  # stops a flood on the first run; the rest go out next run
 
 SPL = {"name": "Seattle Public Library", "base": "https://spl.libcal.com"}
@@ -104,7 +105,8 @@ def available_days(item, today):
     found = {}  # day -> direct booking link (or None)
     for month in month_starts(today):
         for day, is_open, href in fetch_month(library, museum_id, month):
-            if is_open and date.fromisoformat(day) >= today:
+            d = date.fromisoformat(day)
+            if is_open and d >= today and d.weekday() in WEEKDAYS_WANTED:
                 found[day] = href
     return found
 
