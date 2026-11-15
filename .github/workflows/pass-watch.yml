@@ -36,5 +36,16 @@ jobs:
         run: |
           git config user.name "pass-watch"
           git config user.email "pass-watch@users.noreply.github.com"
-          git add state.json
-          git diff --cached --quiet || (git commit -m "update state" && git push)
+          [ -f state.json ] || exit 0
+          cp state.json "$RUNNER_TEMP/state.json"
+          for i in 1 2 3; do
+            git add state.json
+            git diff --cached --quiet && exit 0
+            git commit -q -m "update state"
+            git push && exit 0
+            # remote moved on: re-sync to it, then re-apply our state file and retry
+            git fetch origin main
+            git reset -q --hard origin/main
+            cp "$RUNNER_TEMP/state.json" state.json
+          done
+          exit 1
