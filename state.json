@@ -26,7 +26,9 @@
   "2026-12-19",
   "2026-12-20"
  ],
- "https://spl.libcal.com|MOHAI": [],
+ "https://spl.libcal.com|MOHAI": [
+  "2026-11-21"
+ ],
  "https://spl.libcal.com|Museum of Flight": [],
  "https://spl.libcal.com|Northwest African American Museum": [
   "2026-11-20",
@@ -46,8 +48,6 @@
  ],
  "https://spl.libcal.com|Pacific Science Center": [],
  "https://spl.libcal.com|Seattle Japanese Garden": [],
- "https://spl.libcal.com|Volunteer Park Conservatory": [
-  "2026-11-20"
- ],
+ "https://spl.libcal.com|Volunteer Park Conservatory": [],
  "https://spl.libcal.com|Woodland Park Zoo": []
 }
