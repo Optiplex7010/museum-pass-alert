@@ -48,6 +48,7 @@ WATCH = [
     ("Henry Art Gallery", SPL, "Henry", "d22bdf1469f1"),
     ("Center for Wooden Boats", SPL, "CWB", "b47b4383226f"),
     ("Holocaust Center for Humanity", SPL, "HolocaustCenterForHumanity", "50f00299343c"),
+    ("National Nordic Museum", SPL, "NationalNordic", "11645e3634bc"),
     ("Burke Museum", SPL, "Burke", "ade05ae45e52"),
     ("Volunteer Park Conservatory", SPL, "VolunteerParkConservatory", "cdfe5e189647"),
     ("Seattle Japanese Garden", SPL, "JapaneseGarden", "851b3af93bbc"),
