@@ -23,14 +23,14 @@ import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("America/Los_Angeles")
 STATE_FILE = Path(__file__).with_name("state.json")
-WEEKDAYS_WANTED = {4, 5, 6}  # Friday, Saturday, Sunday (Monday = 0)
+WEEKDAYS_WANTED = {4, 5, 6}  # Friday, Saturday, Sunday (Monday = 0); US federal holidays also count
 MAX_EMAILS_PER_RUN = 10  # stops a flood on the first run; the rest go out next run
 
 SPL = {"name": "Seattle Public Library", "base": "https://spl.libcal.com"}
@@ -61,6 +61,35 @@ CELL = re.compile(
     r'class="day [^"]*?day-(\d{4}-\d\d-\d\d)[^"]*"\s*>\s*<div class="day-number">\s*'
     r'<(?:span|a)\b([^>]*)>'
 )
+
+
+def federal_holidays(year):
+    """US federal holidays for a year: the actual date plus the observed weekday
+    (Saturday holidays are observed Friday, Sunday holidays Monday)."""
+    def nth_weekday(month, weekday, n):  # n=1 first, n=-1 last
+        if n > 0:
+            d = date(year, month, 1)
+            d += timedelta(days=(weekday - d.weekday()) % 7 + 7 * (n - 1))
+        else:
+            d = date(year + (month == 12), month % 12 + 1, 1) - timedelta(days=1)
+            d -= timedelta(days=(d.weekday() - weekday) % 7)
+        return d
+
+    fixed = [date(year, 1, 1), date(year, 6, 19), date(year, 7, 4),
+             date(year, 11, 11), date(year, 12, 25)]
+    days = set(fixed)
+    for d in fixed:
+        if d.weekday() == 5:
+            days.add(d - timedelta(days=1))
+        elif d.weekday() == 6:
+            days.add(d + timedelta(days=1))
+    days |= {nth_weekday(1, 0, 3),   # Martin Luther King Jr. Day
+             nth_weekday(2, 0, 3),   # Presidents Day
+             nth_weekday(5, 0, -1),  # Memorial Day
+             nth_weekday(9, 0, 1),   # Labor Day
+             nth_weekday(10, 0, 2),  # Columbus / Indigenous Peoples' Day
+             nth_weekday(11, 3, 4)}  # Thanksgiving
+    return days
 
 
 def month_starts(today):
@@ -105,10 +134,11 @@ def fetch_month(library, museum_id, month_start):
 def available_days(item, today):
     museum, library, _slug, museum_id = item
     found = {}  # day -> direct booking link (or None)
+    holidays = federal_holidays(today.year) | federal_holidays(today.year + 1)
     for month in month_starts(today):
         for day, is_open, href in fetch_month(library, museum_id, month):
             d = date.fromisoformat(day)
-            if is_open and d >= today and d.weekday() in WEEKDAYS_WANTED:
+            if is_open and d >= today and (d.weekday() in WEEKDAYS_WANTED or d in holidays):
                 found[day] = href
     return found
 
