@@ -1,14 +1,21 @@
 {
- "https://rooms.kcls.org|MOHAI": [],
- "https://rooms.kcls.org|Museum of Flight": [],
+ "https://rooms.kcls.org|MOHAI": [
+  "2026-12-11"
+ ],
+ "https://rooms.kcls.org|Museum of Flight": [
+  "2026-12-11"
+ ],
  "https://rooms.kcls.org|Northwest African American Museum": [
   "2026-11-28",
   "2026-11-29",
   "2026-12-04",
   "2026-12-05",
-  "2026-12-06"
+  "2026-12-06",
+  "2026-12-11"
  ],
- "https://rooms.kcls.org|Woodland Park Zoo": [],
+ "https://rooms.kcls.org|Woodland Park Zoo": [
+  "2026-12-11"
+ ],
  "https://spl.libcal.com|Burke Museum": [],
  "https://spl.libcal.com|Center for Wooden Boats": [],
  "https://spl.libcal.com|Henry Art Gallery": [
@@ -26,9 +33,7 @@
   "2026-12-27"
  ],
  "https://spl.libcal.com|Holocaust Center for Humanity": [],
- "https://spl.libcal.com|MOHAI": [
-  "2026-12-06"
- ],
+ "https://spl.libcal.com|MOHAI": [],
  "https://spl.libcal.com|Museum of Flight": [],
  "https://spl.libcal.com|National Nordic Museum": [
   "2026-12-18",
